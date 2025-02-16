@@ -36,6 +36,6 @@ zig build
 
 Built binaries are available in the zig-out directory eg.
 ```
-/hexary/zig-out/hexary.exe
+/hexary/zig-out/bin/hexary.exe
 ```
 
