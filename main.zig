@@ -2,6 +2,7 @@ const rl = @import("raylib");
 const std = @import("std");
 
 const triangle = struct { p1: rl.Vector3, p2: rl.Vector3, p3: rl.Vector3, color: rl.Color };
+const neighbors = struct { n1: triangle, n2: triangle, n3: triangle };
 
 // Draw the 3 golden rectangles that make up the base icosahedron
 fn drawGoldenRectangle(icosaPointArray: *const [12]rl.Vector3) void {
@@ -62,6 +63,16 @@ fn projectVector(v1: rl.Vector3, v2: rl.Vector3) rl.Vector3 {
 //    for (icosaPointArray) |point| {
 //
 //    }
+//}
+
+//fn unnamed(triPointArray,icosaTriArray) void {
+//    for (icosaTriArray) |triangle| {
+//        for (
+//    }
+//for vertex
+//  for neighbors
+//
+//
 //}
 
 pub fn main() anyerror!void {
@@ -126,31 +137,29 @@ pub fn main() anyerror!void {
         triangle{ .p1 = icosaPointArray[9], .p2 = icosaPointArray[10], .p3 = icosaPointArray[6], .color = rl.Color.magenta },
     };
 
-    //const triNeighbors = [20][3]triangle{
     // Assign initial neighbors
-    //
-    //c# neighbor code to convert
-    //output[0].AssignNeighbors(output[1], output[4], output[18]);
-    //output[1].AssignNeighbors(output[2], output[0], output[10]);
-    //output[2].AssignNeighbors(output[1], output[12], output[3]);
-    //output[3].AssignNeighbors(output[2], output[14], output[4]);
-    //output[4].AssignNeighbors(output[3], output[16], output[0]);
-    //output[5].AssignNeighbors(output[19], output[6], output[9]);
-    //output[6].AssignNeighbors(output[5], output[17], output[7]);
-    //output[7].AssignNeighbors(output[6], output[15], output[8]);
-    //output[8].AssignNeighbors(output[7], output[13], output[9]);
-    //output[9].AssignNeighbors(output[8], output[11], output[5]);
-    //output[10].AssignNeighbors(output[1], output[19], output[11]);
-    //output[11].AssignNeighbors(output[10], output[9], output[12]);
-    //output[12].AssignNeighbors(output[11], output[13], output[2]);
-    //output[13].AssignNeighbors(output[12], output[8], output[14]);
-    //output[14].AssignNeighbors(output[13], output[15], output[3]);
-    //output[15].AssignNeighbors(output[14], output[7], output[16]);
-    //output[16].AssignNeighbors(output[15], output[17], output[4]);
-    //output[17].AssignNeighbors(output[16], output[6], output[18]);
-    //output[18].AssignNeighbors(output[17], output[19], output[0]);
-    //output[19].AssignNeighbors(output[18], output[5], output[10]);
-    //}
+    //const triNeighbors = [20]neighbors{
+    //    neighbors{ .n1 = icosaTriArray[1], .n2 = icosaTriArray[4], .n3 = icosaTriArray[18] },
+    //    neighbors{ .n1 = icosaTriArray[2], .n2 = icosaTriArray[0], .n3 = icosaTriArray[10] },
+    //    neighbors{ .n1 = icosaTriArray[1], .n2 = icosaTriArray[12], .n3 = icosaTriArray[3] },
+    //    neighbors{ .n1 = icosaTriArray[2], .n2 = icosaTriArray[14], .n3 = icosaTriArray[4] },
+    //    neighbors{ .n1 = icosaTriArray[3], .n2 = icosaTriArray[16], .n3 = icosaTriArray[0] },
+    //    neighbors{ .n1 = icosaTriArray[19], .n2 = icosaTriArray[6], .n3 = icosaTriArray[9] },
+    //    neighbors{ .n1 = icosaTriArray[5], .n2 = icosaTriArray[17], .n3 = icosaTriArray[7] },
+    //    neighbors{ .n1 = icosaTriArray[6], .n2 = icosaTriArray[15], .n3 = icosaTriArray[8] },
+    //    neighbors{ .n1 = icosaTriArray[7], .n2 = icosaTriArray[13], .n3 = icosaTriArray[9] },
+    //    neighbors{ .n1 = icosaTriArray[8], .n2 = icosaTriArray[11], .n3 = icosaTriArray[5] },
+    //    neighbors{ .n1 = icosaTriArray[1], .n2 = icosaTriArray[19], .n3 = icosaTriArray[11] },
+    //    neighbors{ .n1 = icosaTriArray[10], .n2 = icosaTriArray[9], .n3 = icosaTriArray[12] },
+    //    neighbors{ .n1 = icosaTriArray[11], .n2 = icosaTriArray[13], .n3 = icosaTriArray[2] },
+    //    neighbors{ .n1 = icosaTriArray[12], .n2 = icosaTriArray[8], .n3 = icosaTriArray[14] },
+    //    neighbors{ .n1 = icosaTriArray[13], .n2 = icosaTriArray[15], .n3 = icosaTriArray[3] },
+    //    neighbors{ .n1 = icosaTriArray[14], .n2 = icosaTriArray[7], .n3 = icosaTriArray[16] },
+    //    neighbors{ .n1 = icosaTriArray[15], .n2 = icosaTriArray[17], .n3 = icosaTriArray[4] },
+    //    neighbors{ .n1 = icosaTriArray[16], .n2 = icosaTriArray[6], .n3 = icosaTriArray[18] },
+    //    neighbors{ .n1 = icosaTriArray[17], .n2 = icosaTriArray[19], .n3 = icosaTriArray[0] },
+    //    neighbors{ .n1 = icosaTriArray[18], .n2 = icosaTriArray[5], .n3 = icosaTriArray[10] },
+    //};
 
     // Main game loop
     while (!rl.windowShouldClose()) { // Detect window close button or ESC key
