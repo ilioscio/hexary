@@ -4,6 +4,21 @@ const std = @import("std");
 const triangle = struct { p1: rl.Vector3, p2: rl.Vector3, p3: rl.Vector3, color: rl.Color };
 const neighbors = struct { n1: triangle, n2: triangle, n3: triangle };
 
+// Bisect 2 vectors
+fn bisectVector(v1: rl.Vector3, v2: rl.Vector3) rl.Vector3 {
+    return (rl.Vector3.add(v1, v2).scale(0.5));
+}
+
+// Magnitude of vector
+fn magnitudeVector(v1: rl.Vector3) f32 {
+    return std.math.sqrt(v1.x * v1.x + v1.y * v1.y + v1.z * v1.z);
+}
+
+// Project vector onto sphere
+fn projectVector(v1: rl.Vector3, v2: rl.Vector3) rl.Vector3 {
+    return (v1.scale(1 / magnitudeVector(v1)).scale(magnitudeVector(v2)));
+}
+
 // Draw the 3 golden rectangles that make up the base icosahedron
 fn drawGoldenRectangle(icosaPointArray: *const [12]rl.Vector3) void {
     // xy rectangle
@@ -30,6 +45,97 @@ fn drawIcosahedron(icosaTriArray: *const [20]triangle) void {
     }
 }
 
+// Draw subdivided icosahedron `subdivisions` times.
+pub fn drawNSubdividedIcosahedron(icosaTriArray: *const [20]triangle, subdivisions: usize) void {
+    const deColores = [23]rl.Color{ rl.Color.light_gray, rl.Color.gray, rl.Color.dark_gray, rl.Color.yellow, rl.Color.gold, rl.Color.orange, rl.Color.pink, rl.Color.red, rl.Color.maroon, rl.Color.green, rl.Color.lime, rl.Color.dark_green, rl.Color.sky_blue, rl.Color.blue, rl.Color.dark_blue, rl.Color.purple, rl.Color.violet, rl.Color.dark_purple, rl.Color.beige, rl.Color.brown, rl.Color.dark_brown, rl.Color.white, rl.Color.magenta };
+    const rand = std.crypto.random;
+
+    // We'll keep our current triangles in an ArrayList so it can grow.
+    var triStore = std.ArrayList(triangle).init(std.heap.page_allocator);
+    defer triStore.deinit();
+
+    // Make space for the initial 20 triangles
+    _ = triStore.ensureTotalCapacity(20) catch unreachable;
+
+    // Copy the initial 20 triangles into triStore
+    for (icosaTriArray) |t| {
+        _ = triStore.append(t) catch unreachable;
+    }
+
+    // Subdivide for the requested number of steps
+    for (0..subdivisions) |_| {
+        // Create a new store for the next generation of triangles
+        var newStore = std.ArrayList(triangle).init(std.heap.page_allocator);
+        // We'll get 4 new triangles for each old one, so pre-allocate if desired
+        _ = newStore.ensureTotalCapacity(triStore.items.len * 4) catch unreachable;
+
+        for (triStore.items) |tri| {
+            // Bisect and project as before
+            var newvec1 = bisectVector(tri.p1, tri.p2);
+            newvec1 = projectVector(newvec1, tri.p1);
+            var newvec2 = bisectVector(tri.p2, tri.p3);
+            newvec2 = projectVector(newvec2, tri.p1);
+            var newvec3 = bisectVector(tri.p3, tri.p1);
+            newvec3 = projectVector(newvec3, tri.p1);
+
+            // Append the 4 new triangles to newStore
+            _ = newStore.append(triangle{ .p1 = newvec1, .p2 = newvec2, .p3 = newvec3, .color = rl.Color.dark_blue }) catch unreachable;
+            _ = newStore.append(triangle{ .p1 = newvec2, .p2 = newvec1, .p3 = tri.p2, .color = rl.Color.dark_blue }) catch unreachable;
+            _ = newStore.append(triangle{ .p1 = newvec1, .p2 = newvec3, .p3 = tri.p1, .color = rl.Color.dark_blue }) catch unreachable;
+            _ = newStore.append(triangle{ .p1 = tri.p3, .p2 = newvec3, .p3 = newvec2, .color = rl.Color.dark_blue }) catch unreachable;
+        }
+
+        // Free old list and swap in the new store
+        triStore.deinit();
+        triStore = newStore;
+    }
+
+    //now take the dual
+    //var centroids = []rl.Vector3;
+    //for(0..,triStore.items) |i, tri| {
+    //find the triangle centroid
+    //    centroids[i] = rl.Vector3.add(tri.p1, tri.p2).add(tri.p3).scale(0.333333);
+    //}
+
+    // Finally, draw all triangles in triStore and their edges
+    for (triStore.items) |tri| {
+        //rl.drawTriangle3D(tri.p1, tri.p2, tri.p3, rl.Color.blue);
+        rl.drawTriangle3D(tri.p1, tri.p2, tri.p3, deColores[rand.uintLessThan(u8, deColores.len)]);
+        //rl.drawLine3D(tri.p1, tri.p2, rl.Color.black);
+        //rl.drawLine3D(tri.p2, tri.p3, rl.Color.black);
+        //rl.drawLine3D(tri.p3, tri.p1, rl.Color.black);
+    }
+}
+
+// Draw subdivided icosahedron.
+pub fn drawSubdividedIcosahedron(icosaTriArray: *const [20]triangle) void {
+    for (icosaTriArray) |tri| {
+        // Bisect and project as before:
+        var newvec1 = bisectVector(tri.p1, tri.p2);
+        newvec1 = projectVector(newvec1, tri.p1);
+        var newvec2 = bisectVector(tri.p2, tri.p3);
+        newvec2 = projectVector(newvec2, tri.p1);
+        var newvec3 = bisectVector(tri.p3, tri.p1);
+        newvec3 = projectVector(newvec3, tri.p1);
+
+        // Draw subdivided triangles with random colors:
+        rl.drawTriangle3D(newvec1, newvec2, newvec3, rl.Color.sky_blue);
+        rl.drawTriangle3D(newvec2, newvec1, tri.p2, rl.Color.sky_blue);
+        rl.drawTriangle3D(newvec1, newvec3, tri.p1, rl.Color.sky_blue);
+        rl.drawTriangle3D(tri.p3, newvec3, newvec2, rl.Color.sky_blue);
+
+        rl.drawLine3D(newvec1, newvec2, rl.Color.black); // xy1 -> xy2
+        rl.drawLine3D(newvec2, newvec3, rl.Color.black); // xy1 -> xy2
+        rl.drawLine3D(newvec3, newvec1, rl.Color.black); // xy1 -> xy2
+        rl.drawLine3D(newvec1, tri.p2, rl.Color.black);
+        rl.drawLine3D(tri.p2, newvec2, rl.Color.black);
+        rl.drawLine3D(newvec1, tri.p1, rl.Color.black);
+        rl.drawLine3D(newvec3, tri.p1, rl.Color.black);
+        rl.drawLine3D(newvec2, tri.p3, rl.Color.black);
+        rl.drawLine3D(newvec3, tri.p3, rl.Color.black);
+    }
+}
+
 // Draw camera hotkey help tooltip
 fn drawCameraTooltip() void {
     const fontSize = 20;
@@ -37,7 +143,7 @@ fn drawCameraTooltip() void {
     const tooltipHeight = 160;
     rl.drawRectangle(10, 10, tooltipWidth, tooltipHeight, rl.Color.fade(rl.Color.light_gray, 0.5));
     rl.drawRectangleLines(10, 10, tooltipWidth, tooltipHeight, rl.Color.black);
-    rl.drawText("Controls:", 20, 20, fontSize, rl.Color.black);
+    rl.drawText("Controls (H to hide):", 20, 20, fontSize, rl.Color.black);
     rl.drawText("- Z to snap to (0, 0, 0)", 40, 40, fontSize, rl.Color.dark_gray);
     rl.drawText("- WASD to move", 40, 60, fontSize, rl.Color.dark_gray);
     rl.drawText("- ARROW KEYS to pan (slowly)", 40, 80, fontSize, rl.Color.dark_gray);
@@ -46,35 +152,6 @@ fn drawCameraTooltip() void {
     rl.drawText("- F to toggle fullscreen", 40, 140, fontSize, rl.Color.dark_gray);
 }
 
-fn bisectVector(v1: rl.Vector3, v2: rl.Vector3) rl.Vector3 {
-    return (rl.Vector3.subtract(v1, v2) / 2);
-}
-
-fn magnitudeVector(v1: rl.Vector3) rl.Vector3 {
-    return std.math.sqrt(v1.x * v1.x + v1.y * v1.y + v1.z * v1.z);
-}
-
-//Project onto sphere
-fn projectVector(v1: rl.Vector3, v2: rl.Vector3) rl.Vector3 {
-    return (v1 * magnitudeVector(v2) / magnitudeVector(v1));
-}
-
-//fn subdivide(icosaPointArray: *const [12]rl.Vector3) void {
-//    for (icosaPointArray) |point| {
-//
-//    }
-//}
-
-//fn unnamed(triPointArray,icosaTriArray) void {
-//    for (icosaTriArray) |triangle| {
-//        for (
-//    }
-//for vertex
-//  for neighbors
-//
-//
-//}
-
 pub fn main() anyerror!void {
     // Golden ratio = (1 + sqrt(5))/2
     const phi = 1.6180339887498948482045868343656381177203091798057628621;
@@ -82,6 +159,7 @@ pub fn main() anyerror!void {
     const screenWidth = 1280;
     const screenHeight = 720;
     const scale = 2;
+    var showHelp: u1 = 1;
 
     rl.initWindow(screenWidth, screenHeight, "hexary");
     defer rl.closeWindow();
@@ -186,8 +264,15 @@ pub fn main() anyerror!void {
             defer camera.end();
 
             //drawGoldenRectangle(&icosaPointArray);
-            drawIcosahedron(&icosaTriArray);
+
+            //drawIcosahedron(&icosaTriArray);
+            drawNSubdividedIcosahedron(&icosaTriArray, 6);
         }
-        drawCameraTooltip();
+        if (rl.isKeyPressed(.h)) {
+            showHelp = ~showHelp;
+        }
+        if (showHelp == 1) {
+            drawCameraTooltip();
+        }
     }
 }
