@@ -46,9 +46,13 @@ fn drawIcosahedron(icosaTriArray: *const [20]triangle) void {
 }
 
 // Draw subdivided icosahedron `subdivisions` times.
-pub fn drawNSubdividedIcosahedron(icosaTriArray: *const [20]triangle, subdivisions: usize) void {
+pub fn drawNSubdividedIcosahedron(icosaTriArray: *const [20]triangle, subdivisions: usize) !void {
+    // You can paint with all the colors, of the wind
     const deColores = [23]rl.Color{ rl.Color.light_gray, rl.Color.gray, rl.Color.dark_gray, rl.Color.yellow, rl.Color.gold, rl.Color.orange, rl.Color.pink, rl.Color.red, rl.Color.maroon, rl.Color.green, rl.Color.lime, rl.Color.dark_green, rl.Color.sky_blue, rl.Color.blue, rl.Color.dark_blue, rl.Color.purple, rl.Color.violet, rl.Color.dark_purple, rl.Color.beige, rl.Color.brown, rl.Color.dark_brown, rl.Color.white, rl.Color.magenta };
     const rand = std.crypto.random;
+
+    // Start timing the duration of function execution
+    var timer = try std.time.Timer.start();
 
     // We'll keep our current triangles in an ArrayList so it can grow.
     var triStore = std.ArrayList(triangle).init(std.heap.page_allocator);
@@ -101,11 +105,19 @@ pub fn drawNSubdividedIcosahedron(icosaTriArray: *const [20]triangle, subdivisio
     for (triStore.items) |tri| {
         //rl.drawTriangle3D(tri.p1, tri.p2, tri.p3, rl.Color.blue);
         rl.drawTriangle3D(tri.p1, tri.p2, tri.p3, deColores[rand.uintLessThan(u8, deColores.len)]);
+        //this code for a random hsv color isn't quite working right, something about the range of the random values is off
+        //rl.drawTriangle3D(tri.p1, tri.p2, tri.p3, rl.colorFromHSV(60, rand.float(f32), rand.float(f32)));
+
         //rl.drawLine3D(tri.p1, tri.p2, rl.Color.black);
         //rl.drawLine3D(tri.p2, tri.p3, rl.Color.black);
         //rl.drawLine3D(tri.p3, tri.p1, rl.Color.black);
     }
+
+    // Print draw time
+    std.debug.print("Subdivided Icosahedron drawn in {d}\n", .{std.fmt.fmtDuration(timer.read())});
 }
+
+// Random color.
 
 // Draw subdivided icosahedron.
 pub fn drawSubdividedIcosahedron(icosaTriArray: *const [20]triangle) void {
@@ -245,9 +257,11 @@ pub fn main() anyerror!void {
         //---------------------------------------------------------------------
         camera.update(.free);
 
+        // 'z' key snaps camera to origin
         if (rl.isKeyPressed(.z)) {
             camera.target = rl.Vector3.init(0, 0, 0);
         }
+        // 'f' key toggles fullscreen
         if (rl.isKeyPressed(.f)) {
             rl.toggleFullscreen();
         }
@@ -266,8 +280,9 @@ pub fn main() anyerror!void {
             //drawGoldenRectangle(&icosaPointArray);
 
             //drawIcosahedron(&icosaTriArray);
-            drawNSubdividedIcosahedron(&icosaTriArray, 6);
+            try drawNSubdividedIcosahedron(&icosaTriArray, 6);
         }
+        // 'h' key toggles help tooltip
         if (rl.isKeyPressed(.h)) {
             showHelp = ~showHelp;
         }
